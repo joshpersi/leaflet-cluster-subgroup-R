@@ -1,0 +1,45 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+<script src="leaflet.featuregroup.subgroup.js"></script>
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(leaflet)
+library(flexdashboard)
+library(sf)
+```
+
+```{r}
+# Convert quakes data to a sf object and assign each observation to a group
+quakes <- quakes |> 
+  st_as_sf(coords = c("long", "lat"), crs = 4326) |> 
+  slice_sample(prop = 1) |> 
+  mutate(group = rep(c("group one", "group two"), 500))
+
+quakes_one <- filter(quakes, group == "group one")
+quakes_two <- filter(quakes, group == "group two")
+```
+
+```{r}
+# Plot the leaflet map with clustered data
+leaflet() |> 
+  addTiles() |> 
+  addLayersControl(overlayGroups = c("group one", "group two")) |> 
+  hideGroup(c("group one", "group two")) |> 
+  addCircleMarkers(
+    data = quakes_one, 
+    group = "group one",
+    clusterOptions = markerClusterOptions()) |> 
+  addCircleMarkers(
+    data = quakes_two,
+    group = "group two",
+    clusterOptions = markerClusterOptions()
+    )
+```
+
